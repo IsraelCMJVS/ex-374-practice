@@ -1,0 +1,11 @@
+# Secretos y datos exclusivos de la demo
+password-*
+*.key
+.vault_pass*
+.env
+inventory/host_vars/*/00-demo.json
+salida/
+*.log
+*.artifact-*.json
+ee/context/
+collections/ansible_collections/
