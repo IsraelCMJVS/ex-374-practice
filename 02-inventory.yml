@@ -1,0 +1,32 @@
+---
+- name: Validar variables resueltas
+  hosts: managed
+  gather_facts: false  
+  vars:
+    expected_ports: {node1: 8088, node2: 9090, node3: 8080}
+  tasks:
+    - name: Verificar puerto y entorno
+      ansible.builtin.assert:
+        that:
+          - app_env == 'demo'          
+          - (app_port | int) == expected_ports[inventory_hostname]
+    - name: Mostrar destino logico y destino SSH
+      ansible.builtin.debug:
+        msg: '{{ inventory_hostname }} -> {{ ansible_host | default(inventory_hostname) }} / {{ app_port }}'
+
+- name: Crear usuarios definidos en el grupo web
+  hosts: web
+  gather_facts: false  
+  become: true  
+  tasks:
+    - name: Crear grupos
+      ansible.builtin.group:
+        name: '{{ item }}'      
+      loop: '{{ lab_users | map(attribute="group") | unique | list }}'    
+
+    - name: Crear cuentas
+      ansible.builtin.user:
+        name: '{{ item.name }}'        
+        group: '{{ item.group }}'        
+        state: present
+      loop: '{{ lab_users }}'

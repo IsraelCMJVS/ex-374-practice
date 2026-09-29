@@ -1,0 +1,4 @@
+lab_users:
+  - {name: lab_john, group: lab_marketing}
+  - {name: lab_kevin, group: lab_sales}
+  - {name: lab_betty, group: lab_hr

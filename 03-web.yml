@@ -1,0 +1,58 @@
+---
+- name: Preparar contenido en workstation
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Crear archivo fuente
+      ansible.builtin.copy:
+        dest: '{{ playbook_dir }}/files/ex374-index.html'
+        content: "EX374 laboratorio web version 1\n"
+        mode: '0644'
+        
+- name: Publicar contenido
+  hosts: web
+  gather_facts: false  
+  become: true  
+  tasks:
+    - name: Instalar Apache
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+        
+    - name: Habilitar e iniciar
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: true    
+
+    - name: Copiar contenido
+      ansible.builtin.copy:
+        src: files/ex374-index.html
+        dest: /var/www/html/ex374.html
+        owner: root
+        group: root
+        mode: '0644'      
+      notify: Reiniciar Apache
+
+    - name: Ejecutar reinicio antes de comprobar
+      ansible.builtin.meta: flush_handlers
+
+    - name: Comprobar pagina desde el propio nodo
+      ansible.builtin.uri:
+        url: http://127.0.0.1/ex374.html
+        return_content: true      
+      register: response
+
+    - name: Validar contenido
+      ansible.builtin.assert:
+        that:
+          - response.status == 200
+          - "'EX374 laboratorio web version 1' in response.content"  
+          
+  handlers:
+    - name: Reiniciar Apache
+      ansible.builtin.service:
+        name: httpd
+        state: restarted
